@@ -46,6 +46,7 @@ brew 'redis'
 brew 'yarn'
 
 # Apps
+cask 'bear'
 cask 'dbngin'
 cask 'docker'
 cask 'sketch'
@@ -83,3 +84,5 @@ cask 'font-inter'
 # Mac App Store
 # mas 'Tweetbot', id: 1384080005
 mas 'Boop', id: 1518425043
+mas 'Xcode', id: 497799835
+mac 'Final Cut Pro', id: 424389933
