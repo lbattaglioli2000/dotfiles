@@ -27,7 +27,6 @@ brew 'fzf'
 brew 'fd'
 brew 'redis'
 brew 'neovim'
-brew 'exa' # modern ls
 brew 'htop' # process viewer
 brew 'tldr' # short man pages
 brew 'wget'
@@ -43,6 +42,8 @@ brew 'gifsicle'
 brew 'imagemagick'
 brew 'yarn'
 
+brew "powerlevel10k"
+
 # Apps
 cask 'docker'
 cask 'github'
@@ -50,19 +51,15 @@ cask 'google-chrome'
 cask 'herd'
 cask 'httpie'
 cask 'slack'
+cask 'ghostty'
 
 # Quicklook
 cask 'qlmarkdown'
 cask 'quicklook-json'
 
 # Fonts
-cask 'font-lato'
-cask 'font-open-sans'
-cask 'font-roboto'
 cask 'font-source-code-pro-for-powerline'
-cask 'font-source-code-pro'
-cask 'font-source-sans-pro'
-cask 'font-source-serif-pro'
+cask 'font-meslo-lg-nerd-font'
 
 # Mac App Store
 mas 'Keynote', id: 409183694

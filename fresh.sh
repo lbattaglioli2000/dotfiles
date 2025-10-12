@@ -25,7 +25,7 @@ fi
 
 # Removes .zshrc from $HOME (if it exists) and symlinks the .zshrc file from the .dotfiles
 rm -rf $HOME/.zshrc
-ln -sw $HOME/.dotfiles/.zshrc $HOME/.zshrc
+ln -sw $HOME/.dotfiles/zsh/.zshrc $HOME/.zshrc
 
 # Update Homebrew recipes
 brew update
@@ -34,8 +34,27 @@ brew update
 brew tap homebrew/bundle
 brew bundle --file ./Brewfile
 
+# Powerlevel10k setup
+if [ -f "$DOTFILES/p10k.zsh" ]; then
+  echo "Linking Powerlevel10k config..."
+  ln -sf "$DOTFILES/p10k.zsh" "$HOME/.p10k.zsh"
+fi
+
 # Set default MySQL root password and auth type
-mysql -u root -e "ALTER USER root@localhost IDENTIFIED WITH mysql_native_password BY 'password'; FLUSH PRIVILEGES;"
+# mysql -u root -e "ALTER USER root@localhost IDENTIFIED WITH mysql_native_password BY 'password'; FLUSH PRIVILEGES;"
+
+# Remove any existing Neovim config and symlink the one from dotfiles
+rm -rf "$HOME/.config/nvim"  
+ln -s "$DOTFILES/nvim" "$HOME/.config/nvim"
+
+# Set up Catppuccin theme for tmux
+rm -rf "$HOME/.config/tmux/plugins/catppuccin"
+mkdir -p "$HOME/.config/tmux/plugins/catppuccin"
+git clone -b v2.1.2 https://github.com/catppuccin/tmux.git "$HOME/.config/tmux/plugins/catppuccin/tmux"
+
+# Link tmux config
+rm -f "$HOME/.tmux.conf"  # remove any existing file or symlink
+ln -s "$DOTFILES/tmux/tmux.conf" "$HOME/.tmux.conf"
 
 # Create a projects directories
 mkdir $HOME/Code
@@ -46,9 +65,6 @@ mkdir $HOME/Code/laravel
 
 # Clone Github repositories
 ./clone.sh
-
-# Symlink the Mackup config file to the home directory
-ln -s ./.mackup.cfg $HOME/.mackup.cfg
 
 # Set macOS preferences - we will run this last because this will reload the shell
 source ./.macos
