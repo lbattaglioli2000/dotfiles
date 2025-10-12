@@ -30,6 +30,7 @@ brew 'neovim'
 brew 'htop' # process viewer
 brew 'tldr' # short man pages
 brew 'wget'
+brew "tmux"
 
 # Spatie Medialibrary
 brew 'jpegoptim'

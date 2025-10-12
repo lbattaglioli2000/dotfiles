@@ -1,70 +1,118 @@
+
 #!/bin/sh
+# ---------------------------------------------------------------------
+#  macOS Bootstrap Script
+#  Purpose: Automate initial system setup, install core tools,
+#           and link dotfiles for a consistent dev environment.
+# ---------------------------------------------------------------------
 
-echo "Setting up your Mac..."
+echo "🔧 Setting up your Mac..."
 
-# Check if Xcode Command Line Tools are installed
+# ---------------------------------------------------------------------
+# 1. Install Xcode Command Line Tools
+# ---------------------------------------------------------------------
 if ! xcode-select -p &>/dev/null; then
-  echo "Xcode Command Line Tools not found. Installing..."
+  echo "📦 Installing Xcode Command Line Tools..."
   xcode-select --install
 else
-  echo "Xcode Command Line Tools already installed."
+  echo "✅ Xcode Command Line Tools already installed."
 fi
 
-# Check for Oh My Zsh and install if we don't have it
-if test ! $(which omz); then
+# ---------------------------------------------------------------------
+# 2. Install Oh My Zsh (if missing)
+# ---------------------------------------------------------------------
+if ! command -v omz &>/dev/null; then
+  echo "📦 Installing Oh My Zsh..."
   /bin/sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/HEAD/tools/install.sh)"
+else
+  echo "✅ Oh My Zsh already installed."
 fi
 
-# Check for Homebrew and install if we don't have it
-if test ! $(which brew); then
+# ---------------------------------------------------------------------
+# 3. Install Homebrew (if missing)
+# ---------------------------------------------------------------------
+if ! command -v brew &>/dev/null; then
+  echo "📦 Installing Homebrew..."
   /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 
-  echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> $HOME/.zprofile
+  echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> "$HOME/.zprofile"
   eval "$(/opt/homebrew/bin/brew shellenv)"
+else
+  echo "✅ Homebrew already installed."
 fi
 
-# Removes .zshrc from $HOME (if it exists) and symlinks the .zshrc file from the .dotfiles
-rm -rf $HOME/.zshrc
-ln -sw $HOME/.dotfiles/zsh/.zshrc $HOME/.zshrc
+# ---------------------------------------------------------------------
+# 4. Symlink Zsh Configuration
+# ---------------------------------------------------------------------
+echo "🔗 Linking .zshrc..."
+rm -f "$HOME/.zshrc"
+ln -sf "$HOME/.dotfiles/zsh/.zshrc" "$HOME/.zshrc"
 
-# Update Homebrew recipes
+# ---------------------------------------------------------------------
+# 5. Install Brew Packages (Brewfile)
+# ---------------------------------------------------------------------
+echo "🍺 Installing Homebrew packages..."
 brew update
-
-# Install all our dependencies with bundle (See Brewfile)
 brew tap homebrew/bundle
-brew bundle --file ./Brewfile
+brew bundle --file "$HOME/.dotfiles/Brewfile"
 
-# Powerlevel10k setup
+# ---------------------------------------------------------------------
+# 6. Powerlevel10k Setup
+# ---------------------------------------------------------------------
 if [ -f "$DOTFILES/p10k.zsh" ]; then
-  echo "Linking Powerlevel10k config..."
+  echo "🎨 Linking Powerlevel10k config..."
   ln -sf "$DOTFILES/p10k.zsh" "$HOME/.p10k.zsh"
 fi
 
-# Set default MySQL root password and auth type
-# mysql -u root -e "ALTER USER root@localhost IDENTIFIED WITH mysql_native_password BY 'password'; FLUSH PRIVILEGES;"
-
-# Remove any existing Neovim config and symlink the one from dotfiles
-rm -rf "$HOME/.config/nvim"  
+# ---------------------------------------------------------------------
+# 7. Neovim Configuration
+# ---------------------------------------------------------------------
+echo "🔗 Linking Neovim config..."
+rm -rf "$HOME/.config/nvim"
 ln -s "$DOTFILES/nvim" "$HOME/.config/nvim"
 
-# Set up Catppuccin theme for tmux
+# ---------------------------------------------------------------------
+# 8. Tmux Setup
+# ---------------------------------------------------------------------
+echo "🔧 Setting up tmux..."
+
+# Install TPM (Tmux Plugin Manager)
+if [ ! -d "$HOME/.tmux/plugins/tpm" ]; then
+  echo "📦 Installing TPM..."
+  git clone https://github.com/tmux-plugins/tpm "$HOME/.tmux/plugins/tpm"
+fi
+
+# Install Catppuccin theme
+echo "🎨 Setting up Catppuccin tmux theme..."
 rm -rf "$HOME/.config/tmux/plugins/catppuccin"
-mkdir -p "$HOME/.config/tmux/plugins/catppuccin"
-git clone -b v2.1.2 https://github.com/catppuccin/tmux.git "$HOME/.config/tmux/plugins/catppuccin/tmux"
+mkdir -p "$HOME/.config/tmux/plugins"
+git clone -b v2.1.2 https://github.com/catppuccin/tmux.git \
+  "$HOME/.config/tmux/plugins/catppuccin"
 
 # Link tmux config
-rm -f "$HOME/.tmux.conf"  # remove any existing file or symlink
-ln -s "$DOTFILES/tmux/tmux.conf" "$HOME/.tmux.conf"
+rm -f "$HOME/.tmux.conf"
+ln -sf "$DOTFILES/tmux/tmux.conf" "$HOME/.tmux.conf"
 
-# Create a projects directories
-mkdir $HOME/Code
-mkdir $HOME/Herd
+# ---------------------------------------------------------------------
+# 9. Create Default Directories
+# ---------------------------------------------------------------------
+echo "📁 Creating project directories..."
+mkdir -p "$HOME/Code/laravel" "$HOME/Herd"
 
-# Create Code subdirectories
-mkdir $HOME/Code/laravel
+# ---------------------------------------------------------------------
+# 10. Clone GitHub Repositories
+# ---------------------------------------------------------------------
+if [ -f "./clone.sh" ]; then
+  echo "🐙 Cloning GitHub repositories..."
+  ./clone.sh
+fi
 
-# Clone Github repositories
-./clone.sh
+# ---------------------------------------------------------------------
+# 11. Apply macOS Preferences
+# ---------------------------------------------------------------------
+if [ -f "./.macos" ]; then
+  echo "🧭 Applying macOS preferences..."
+  source "./.macos"
+fi
 
-# Set macOS preferences - we will run this last because this will reload the shell
-source ./.macos
+echo "✅ Setup complete! Open a new terminal to start fresh."
