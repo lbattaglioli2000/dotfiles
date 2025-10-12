@@ -1,24 +1,35 @@
 #!/usr/bin/env bash
 
-# Credit to ThePrimeagen
+# t - Quickly jump into a tmux session for a project
+# Searches across ~/Herd, ~/Code, and ~/Code/laravel
+# Stolen from The Primeagen
 
+SEARCH_DIRS=("$HOME/Herd" "$HOME/Code" "$HOME/Code/laravel")
+
+# Collect all subdirectories one level deep, skip empties
+items=$(for dir in "${SEARCH_DIRS[@]}"; do
+  [[ -d "$dir" ]] && find "$dir" -mindepth 1 -maxdepth 1 -type d
+done | sort | uniq)
+
+# If argument provided, match directly; otherwise show fzf menu
 if [[ $# -eq 1 ]]; then
-    selected=$1
+  query="$1"
+  selected=$(echo "$items" | grep -i "$query" | head -n 1)
 else
-    items=`find ~/Herd -maxdepth 2 -mindepth 1 -type d`
-    items+=`echo -e "\n/tmp"`
-    selected=`echo "$items" | fzf`
+  selected=$(echo "$items" | fzf --prompt="Select project: " --height=40%)
 fi
 
-if [[ $selected == '' ]]; then
-    exit
+# Exit if nothing selected
+[[ -z "$selected" ]] && exit 0
+
+# Sanitize session name
+dirname=$(basename "$selected" | tr '.' '_' | tr ' ' '_')
+
+# If session exists, attach
+if tmux has-session -t="$dirname" 2>/dev/null; then
+  tmux switch-client -t "$dirname"
+  exit 0
 fi
 
-dirname=`basename "$selected" | sed 's/\./_/g'`
-
-tmux switch-client -t ="$dirname"
-if [[ $? -eq 0 ]]; then
-    exit 0
-fi
-
-tmux new-session -c "$selected" -d -s "$dirname" && tmux switch-client -t "$dirname" || tmux new -c "$selected" -A -s "$dirname"
+# Otherwise create a new session
+tmux new-session -s "$dirname" -c "$selected"

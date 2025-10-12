@@ -8,6 +8,9 @@ alias shrug="echo '¯\_(ツ)_/¯' | pbcopy"
 alias compile="commit 'compile'"
 alias timestamp="date +%s"
 alias version="commit 'version'"
+alias vim="nvim"
+alias vi="nvim"
+alias v="nvim"
 
 # Directories
 alias dotfiles="cd $DOTFILES"
